@@ -7,7 +7,7 @@ import (
 )
 
 type NewOrderRequest struct {
-	Customer_name string `json:"customer_name" valid:"required~customer_name cannot be empty"`
+	CustomerName string `json:"customer_name" valid:"required~customer_name cannot be empty"`
 }
 
 func (o *NewOrderRequest) Validate() error {
@@ -19,7 +19,7 @@ func (o *NewOrderRequest) Validate() error {
 }
 
 type NewOrderResponse struct {
-	ID            uint      `json:"id"`
-	Customer_name string    `json:"customer_name"`
-	Ordered_at    time.Time `json:"ordered_at"`
+	ID           int       `json:"id"`
+	CustomerName string    `json:"customer_name"`
+	Ordered_at   time.Time `json:"ordered_at"`
 }

@@ -6,15 +6,18 @@ import (
 	"assignment-simple-rest-api/repository/order_repository"
 )
 
+// ! Order Service Interface
 type OrderService interface {
 	InsertOrder(*dto.NewOrderRequest) (*dto.NewOrderResponse, error)
-	GetAllOrder() ([]*entity.Order, error)
+	GetAllOrders() ([]*entity.Order, error)
 }
 
+// ! Order Service Implementation
 type orderService struct {
 	repo order_repository.OrderRepository
 }
 
+// ! Factory function yang mengembalikan orderPg dengan inject repo.
 func NewOrderService(repo order_repository.OrderRepository) OrderService {
 	return &orderService{
 		repo: repo,
@@ -22,13 +25,29 @@ func NewOrderService(repo order_repository.OrderRepository) OrderService {
 }
 
 func (o *orderService) InsertOrder(orderPayload *dto.NewOrderRequest) (*dto.NewOrderResponse, error) {
-	var orderResponse dto.NewOrderResponse
+	// ! Service untuk insert data order ke database
+	if err := orderPayload.Validate(); err != nil {
+		return nil, err
+	}
 
-	return &orderResponse, nil
+	orderRequest := &entity.Order{
+		CustomerName: orderPayload.CustomerName,
+	}
+
+	newOrder, err := o.repo.InsertOrder(orderRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return newOrder.NewOrderResponseDTO(), nil
 }
 
-func (o *orderService) GetAllOrder() ([]*entity.Order, error) {
-	var orders []*entity.Order
+func (o *orderService) GetAllOrders() ([]*entity.Order, error) {
+	// ! Service untuk mengambil data order dari repository
+	orders, err := o.repo.GetAllOrders()
+	if err != nil {
+		return nil, err
+	}
 
 	return orders, nil
 }

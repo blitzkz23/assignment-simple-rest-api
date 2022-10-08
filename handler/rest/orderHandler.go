@@ -32,17 +32,17 @@ func (o *orderRestHandler) InsertOrder(c *gin.Context) {
 	newOrder, err := o.service.InsertOrder(&orderRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "Internal server error",
-			"err":     err.Error(),
+			"message": err.Error(),
+			"err":     "INTERNAL_SERVER_ERROR",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, newOrder)
+	c.JSON(http.StatusCreated, newOrder)
 }
 
 func (o *orderRestHandler) GetAllOrder(c *gin.Context) {
-	orders, err := o.service.GetAllOrder()
+	orders, err := o.service.GetAllOrders()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "Internal server error",
