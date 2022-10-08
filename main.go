@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "assignment-simple-rest-api/handler/rest"
 
+func main() {
+	rest.StartApp()
 }

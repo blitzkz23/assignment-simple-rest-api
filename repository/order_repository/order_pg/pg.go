@@ -27,7 +27,7 @@ func (o *orderPG) GetAllOrder() ([]*entity.Order, error) {
 	return orders, nil
 }
 
-func (o *orderPG) UpdateOrder(orderID int) (*entity.Order, error) {
+func (o *orderPG) UpdateOrderById(orderID int) (*entity.Order, error) {
 	var order entity.Order
 
 	return &order, nil
