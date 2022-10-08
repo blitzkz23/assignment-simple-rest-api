@@ -23,7 +23,7 @@ func StartApp() {
 	// ! Routing API with gin
 	route := gin.Default()
 
-	orderRoute := route.Group("/order")
+	orderRoute := route.Group("/orders")
 	{
 		orderRoute.GET("/", orderHandler.GetAllOrder)
 		orderRoute.POST("/", orderHandler.InsertOrder)
