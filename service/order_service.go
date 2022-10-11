@@ -10,6 +10,8 @@ import (
 type OrderService interface {
 	InsertOrder(*dto.NewOrderRequest) (*dto.NewOrderResponse, error)
 	GetAllOrders() ([]*entity.Order, error)
+	GetAllOrderItems() ([]*dto.OrderItemsResponse, error)
+	DeleteOrderByID(orderID int) (int64, error)
 }
 
 // ! Order Service Implementation
@@ -50,4 +52,23 @@ func (o *orderService) GetAllOrders() ([]*entity.Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (o *orderService) GetAllOrderItems() ([]*dto.OrderItemsResponse, error) {
+	// ! Service untuk mengambil data order items dari repository
+	orderItems, err := o.repo.GetOrderItems()
+	if err != nil {
+		return nil, err
+	}
+
+	return orderItems, nil
+}
+
+func (o *orderService) DeleteOrderByID(orderID int) (int64, error) {
+	deletedOrder, err := o.repo.DeleteOrder(orderID)
+	if err != nil {
+		return 0, err
+	}
+
+	return deletedOrder, nil
 }

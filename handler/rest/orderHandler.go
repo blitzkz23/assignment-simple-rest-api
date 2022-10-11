@@ -2,7 +2,9 @@ package rest
 
 import (
 	"assignment-simple-rest-api/dto"
+	"assignment-simple-rest-api/helper"
 	"assignment-simple-rest-api/service"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -52,4 +54,42 @@ func (o *orderRestHandler) GetAllOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, orders)
+}
+
+func (o *orderRestHandler) GetAllOrderItems(c *gin.Context) {
+	orderItems, err := o.service.GetAllOrderItems()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Internal server error",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, orderItems)
+}
+
+func (o *orderRestHandler) DeleteOrderByID(c *gin.Context) {
+	orderID, err := helper.GetParamID(c, "orderID")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": err.Error(),
+			"err":     "Invalid order ID",
+		})
+		return
+	}
+
+	if _, err := o.service.DeleteOrderByID(orderID); err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Internal server error",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	deletedMessage := fmt.Sprintf("Order with ID %d has been deleted", orderID)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"message": deletedMessage,
+	})
 }

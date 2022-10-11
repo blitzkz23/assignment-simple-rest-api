@@ -25,8 +25,9 @@ func StartApp() {
 
 	orderRoute := route.Group("/orders")
 	{
-		orderRoute.GET("/", orderHandler.GetAllOrder)
+		orderRoute.GET("/", orderHandler.GetAllOrderItems)
 		orderRoute.POST("/", orderHandler.InsertOrder)
+		orderRoute.DELETE("/:orderID", orderHandler.DeleteOrderByID)
 	}
 
 	fmt.Println("Server is running on port", port)
