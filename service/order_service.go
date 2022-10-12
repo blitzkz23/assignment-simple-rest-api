@@ -9,7 +9,7 @@ import (
 // ! Order Service Interface
 type OrderService interface {
 	InsertOrder(*dto.NewOrderRequest) (*dto.NewOrderResponse, error)
-	GetAllOrders() ([]*entity.Order, error)
+	InsertOrderItems(orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error)
 	GetAllOrderItems() ([]*dto.OrderItemsResponse, error)
 	DeleteOrderByID(orderID int) (int64, error)
 }
@@ -44,14 +44,32 @@ func (o *orderService) InsertOrder(orderPayload *dto.NewOrderRequest) (*dto.NewO
 	return newOrder.NewOrderResponseDTO(), nil
 }
 
-func (o *orderService) GetAllOrders() ([]*entity.Order, error) {
-	// ! Service untuk mengambil data order dari repository
-	orders, err := o.repo.GetAllOrders()
+func (o *orderService) InsertOrderItems(orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error) {
+	// ! Service untuk insert data order dan items ke database
+	if err := orderPayload.Validate(); err != nil {
+		return nil, err
+	}
+
+	orderRequest := &entity.Order{
+		CustomerName: orderPayload.CustomerName,
+	}
+
+	for _, item := range orderPayload.Items {
+		itemRequest := &entity.Item{
+			ItemCode:    item.ItemCode,
+			Description: item.Description,
+			Quantity:    item.Quantity,
+		}
+
+		orderRequest.Items = append(orderRequest.Items, *itemRequest)
+	}
+
+	err := o.repo.CreateOrder(orderRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	return orders, nil
+	return orderPayload, nil
 }
 
 func (o *orderService) GetAllOrderItems() ([]*dto.OrderItemsResponse, error) {

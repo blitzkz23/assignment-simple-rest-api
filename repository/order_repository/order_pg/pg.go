@@ -15,9 +15,10 @@ const (
 		VALUES ($1)
 		RETURNING id, customer_name, ordered_at;
 	`
-	retrieveAllOrderQuery = `
-		SELECT id, customer_name, ordered_at
-		FROM orders
+	insertItemQuery = `
+		INSERT INTO items (item_code, description, quantity, order_id)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, item_code, description, quantity, order_id;
 	`
 	retrieveOrderItemQuery = `
 		SELECT o.id, o.customer_name, o.ordered_at, i.id, i.item_code, i.description, i.quantity
@@ -54,18 +55,33 @@ func (o *orderPG) InsertOrder(orderPayload *entity.Order) (*entity.Order, error)
 		return nil, err
 	}
 
+	fmt.Println("orderPayload", orderPayload)
+	fmt.Println("order", order)
+
 	return &order, nil
 }
 
-func (o *orderPG) CreateOrder(orderPayload *entity.Order, itemPayload []*entity.Item) error {
+func (o *orderPG) CreateOrder(orderPayload *entity.Order) error {
+	var order entity.Order
 	tx, err := o.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	for _, value := range itemPayload {
-		_, err = tx.Exec(insertOrderQuery, orderPayload.CustomerName, value.ID, value.ItemCode, value.Description, value.Quantity)
+	// ! Insert data order ke database
+	row := tx.QueryRow(insertOrderQuery, orderPayload.CustomerName)
+	err2 := row.Scan(&order.ID, &order.CustomerName, &order.OrderedAt)
+	if err2 != nil {
+		tx.Rollback()
+		return err
+	}
+	fmt.Println("orderPayload", orderPayload)
 
+	// ! Insert data item ke database
+	for _, value := range orderPayload.Items {
+		_, err = tx.Exec(insertItemQuery, value.ItemCode, value.Description, value.Quantity, &order.ID)
+
+		fmt.Println("current value", value)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -79,28 +95,6 @@ func (o *orderPG) CreateOrder(orderPayload *entity.Order, itemPayload []*entity.
 	}
 
 	return nil
-}
-
-func (o *orderPG) GetAllOrders() ([]*entity.Order, error) {
-	// ! Ambil semua data order dari database
-	var orders []*entity.Order
-
-	rows, err := o.db.Query(retrieveAllOrderQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		var order entity.Order
-
-		err := rows.Scan(&order.ID, &order.CustomerName, &order.OrderedAt)
-		if err != nil {
-			return nil, err
-		}
-		orders = append(orders, &order)
-	}
-
-	return orders, nil
 }
 
 func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
@@ -123,7 +117,7 @@ func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 			&orderItem.Items.Description,
 			&orderItem.Items.Quantity,
 		)
-		// fmt.Println("current orderItem", orderItem)
+		fmt.Println("current orderItem", orderItem)
 
 		if err != nil {
 			return nil, err

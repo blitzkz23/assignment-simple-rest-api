@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const port = ":8080"
+const port = "127.0.0.1:8080"
 
 func StartApp() {
 	database.InitializeDB()
@@ -26,7 +26,7 @@ func StartApp() {
 	orderRoute := route.Group("/orders")
 	{
 		orderRoute.GET("/", orderHandler.GetAllOrderItems)
-		orderRoute.POST("/", orderHandler.InsertOrder)
+		orderRoute.POST("/", orderHandler.InsertOrderItems)
 		orderRoute.DELETE("/:orderID", orderHandler.DeleteOrderByID)
 	}
 

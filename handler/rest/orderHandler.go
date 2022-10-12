@@ -43,8 +43,18 @@ func (o *orderRestHandler) InsertOrder(c *gin.Context) {
 	c.JSON(http.StatusCreated, newOrder)
 }
 
-func (o *orderRestHandler) GetAllOrder(c *gin.Context) {
-	orders, err := o.service.GetAllOrders()
+func (o *orderRestHandler) InsertOrderItems(c *gin.Context) {
+	var orderItemsRequest dto.NewOrderItemsRequest
+
+	if err := c.ShouldBindJSON(&orderItemsRequest); err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "Invalid JSON request",
+			"err":     err.Error(),
+		})
+		return
+	}
+
+	newOrderItems, err := o.service.InsertOrderItems(&orderItemsRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"message": "Internal server error",
@@ -53,7 +63,7 @@ func (o *orderRestHandler) GetAllOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, orders)
+	c.JSON(http.StatusCreated, newOrderItems)
 }
 
 func (o *orderRestHandler) GetAllOrderItems(c *gin.Context) {

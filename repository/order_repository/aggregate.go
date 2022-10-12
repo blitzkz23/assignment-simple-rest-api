@@ -15,7 +15,7 @@ func (o OrderItems) ToOrderItemsDTO() dto.OrderItemsResponse {
 		ID:           o.Order.ID,
 		CustomerName: o.Order.CustomerName,
 		OrderedAt:    o.Order.OrderedAt,
-		Items: []dto.EmbeddedItems{
+		Items: []dto.EmbeddedItemsResponse{
 			{
 				ID:          o.Items.ID,
 				ItemCode:    o.Items.ItemCode,
