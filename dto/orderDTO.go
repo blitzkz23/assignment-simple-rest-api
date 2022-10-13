@@ -42,6 +42,10 @@ type NewOrderResponse struct {
 	Items        []EmbeddedItemsRequest `json:"items"`
 }
 
+type OrderDeletedResponse struct {
+	Message string `json:"message"`
+}
+
 func (o *NewOrderRequest) Validate() error {
 	_, err := govalidator.ValidateStruct(o)
 	if err != nil {

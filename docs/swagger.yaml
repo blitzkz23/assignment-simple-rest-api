@@ -1,0 +1,151 @@
+definitions:
+  dto.EmbeddedItemsRequest:
+    properties:
+      description:
+        type: string
+      item_code:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  dto.EmbeddedItemsResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      item_code:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  dto.NewOrderItemsRequest:
+    properties:
+      customer_name:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/dto.EmbeddedItemsRequest'
+        type: array
+    type: object
+  dto.OrderDeletedResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.OrderItemsResponse:
+    properties:
+      customer_name:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/dto.EmbeddedItemsResponse'
+        type: array
+      order_id:
+        type: integer
+      ordered_at:
+        type: string
+    type: object
+  entity.Item:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      item_code:
+        type: string
+      order_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  entity.Order:
+    properties:
+      customer_name:
+        type: string
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/entity.Item'
+        type: array
+      ordered_at:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /orders:
+    get:
+      description: Retrieving All Order With Related Items
+      operationId: get-all-orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Order'
+            type: array
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Create New Movie Data With Ordered Items.
+      operationId: create-new-orders
+      parameters:
+      - description: request body json
+        in: body
+        name: RequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/dto.NewOrderItemsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.OrderItemsResponse'
+      tags:
+      - orders
+  /orders/{userID}:
+    delete:
+      description: Update existing order by ID and its items if needed
+      operationId: delete-orders
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderID
+        required: true
+        type: integer
+      responses:
+        "201":
+          description: Order Deleted
+          schema:
+            $ref: '#/definitions/dto.OrderDeletedResponse'
+      tags:
+      - orders
+    put:
+      consumes:
+      - application/json
+      description: Update existing order by ID and its items if needed
+      operationId: update-orders
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.OrderItemsResponse'
+      tags:
+      - orders
+swagger: "2.0"

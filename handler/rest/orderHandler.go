@@ -20,6 +20,15 @@ func NewOrderRestHandler(service service.OrderService) *orderRestHandler {
 	}
 }
 
+// InsertOrderItems godoc
+// @Tags orders
+// @Description Create New Movie Data With Ordered Items.
+// @ID create-new-orders
+// @Accept json
+// @Produce json
+// @Param RequestBody body dto.NewOrderItemsRequest true "request body json"
+// @Success 201 {object} dto.OrderItemsResponse
+// @Router /orders [post]
 func (o *orderRestHandler) InsertOrderItems(c *gin.Context) {
 	var orderItemsRequest dto.NewOrderItemsRequest
 
@@ -43,6 +52,13 @@ func (o *orderRestHandler) InsertOrderItems(c *gin.Context) {
 	c.JSON(http.StatusCreated, newOrderItems)
 }
 
+// GetAllOrderItems godoc
+// @Tags        orders
+// @Description Retrieving All Order With Related Items
+// @ID          get-all-orders
+// @Produce     json
+// @Success     200 {array} entity.Order
+// @Router      /orders [get]
 func (o *orderRestHandler) GetAllOrderItems(c *gin.Context) {
 	orderItems, err := o.service.GetAllOrderItems()
 	if err != nil {
@@ -56,6 +72,15 @@ func (o *orderRestHandler) GetAllOrderItems(c *gin.Context) {
 	c.JSON(http.StatusOK, orderItems)
 }
 
+// UpdateOrderById godoc
+// @Tags orders
+// @Description Update existing order by ID and its items if needed
+// @ID update-orders
+// @Accept json
+// @Produce json
+// @Param orderID path int true "Order ID"
+// @Success 201 {object} dto.OrderItemsResponse
+// @Router /orders/{userID} [put]
 func (o *orderRestHandler) UpdateOrderById(c *gin.Context) {
 	orderID, err := helper.GetParamID(c, "orderID")
 
@@ -89,6 +114,13 @@ func (o *orderRestHandler) UpdateOrderById(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedOrder)
 }
 
+// DeleteOrderById godoc
+// @Tags orders
+// @Description Update existing order by ID and its items if needed
+// @ID delete-orders
+// @Param orderID path int true "Order ID"
+// @Success 201 {object} dto.OrderDeletedResponse "Order Deleted"
+// @Router /orders/{userID} [delete]
 func (o *orderRestHandler) DeleteOrderByID(c *gin.Context) {
 	orderID, err := helper.GetParamID(c, "orderID")
 
