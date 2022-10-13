@@ -27,6 +27,7 @@ func StartApp() {
 	{
 		orderRoute.GET("/", orderHandler.GetAllOrderItems)
 		orderRoute.POST("/", orderHandler.InsertOrderItems)
+		orderRoute.PUT("/:orderID", orderHandler.UpdateOrderById)
 		orderRoute.DELETE("/:orderID", orderHandler.DeleteOrderByID)
 	}
 

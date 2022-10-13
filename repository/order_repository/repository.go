@@ -6,9 +6,8 @@ import (
 )
 
 type OrderRepository interface {
-	InsertOrder(orderPayload *entity.Order) (*entity.Order, error)
 	CreateOrder(orderPayload *entity.Order) error
 	GetOrderItems() ([]*dto.OrderItemsResponse, error)
-	UpdateOrderById(orderID int) (*entity.Order, error)
+	UpdateOrderItems(orderId int, orderPayload *entity.Order) error
 	DeleteOrder(orderID int) (int64, error)
 }

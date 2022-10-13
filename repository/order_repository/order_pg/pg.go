@@ -27,7 +27,14 @@ const (
 		ORDER BY o.id ASC;
 	`
 	updateOrderQuery = `
-
+		UPDATE orders
+		SET customer_name = $2
+		WHERE id = $1
+	`
+	updateItemQuery = `
+		UPDATE items
+		SET item_code = $1, description = $2, quantity = $3
+		WHERE item_code = $1
 	`
 	deleteOrderQuery = `
 		DELETE FROM orders
@@ -44,23 +51,6 @@ func NewOrderPg(db *sql.DB) *orderPG {
 	return &orderPG{db}
 }
 
-func (o *orderPG) InsertOrder(orderPayload *entity.Order) (*entity.Order, error) {
-	// ! Insert data order ke database
-	var order entity.Order
-
-	row := o.db.QueryRow(insertOrderQuery, orderPayload.CustomerName)
-	err := row.Scan(&order.ID, &order.CustomerName, &order.OrderedAt)
-
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("orderPayload", orderPayload)
-	fmt.Println("order", order)
-
-	return &order, nil
-}
-
 func (o *orderPG) CreateOrder(orderPayload *entity.Order) error {
 	var order entity.Order
 	tx, err := o.db.Begin()
@@ -75,13 +65,11 @@ func (o *orderPG) CreateOrder(orderPayload *entity.Order) error {
 		tx.Rollback()
 		return err
 	}
-	fmt.Println("orderPayload", orderPayload)
 
 	// ! Insert data item ke database
 	for _, value := range orderPayload.Items {
 		_, err = tx.Exec(insertItemQuery, value.ItemCode, value.Description, value.Quantity, &order.ID)
 
-		fmt.Println("current value", value)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -104,7 +92,6 @@ func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("current row", &rows)
 
 	for rows.Next() {
 		var orderItem order_repository.OrderItems
@@ -117,24 +104,49 @@ func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 			&orderItem.Items.Description,
 			&orderItem.Items.Quantity,
 		)
-		fmt.Println("current orderItem", orderItem)
 
 		if err != nil {
 			return nil, err
 		}
 
 		dto := orderItem.ToOrderItemsDTO()
-		fmt.Println("current dto", dto)
 		orderItems = append(orderItems, &dto)
 	}
 
 	return orderItems, nil
 }
 
-func (o *orderPG) UpdateOrderById(orderID int) (*entity.Order, error) {
-	var order entity.Order
+func (o *orderPG) UpdateOrderItems(orderId int, orderPayload *entity.Order) error {
+	tx, err := o.db.Begin()
+	if err != nil {
+		return err
+	}
 
-	return &order, nil
+	// ! Update tabel order
+	_, err2 := tx.Exec(updateOrderQuery, orderId, orderPayload.CustomerName)
+	if err2 != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// ! Update tabel item
+	for _, value := range orderPayload.Items {
+		_, err = tx.Exec(updateItemQuery, value.ItemCode, value.Description, value.Quantity)
+
+		fmt.Println("current value update payload repository", value)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
 func (o *orderPG) DeleteOrder(orderID int) (int64, error) {

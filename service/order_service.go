@@ -8,9 +8,9 @@ import (
 
 // ! Order Service Interface
 type OrderService interface {
-	InsertOrder(*dto.NewOrderRequest) (*dto.NewOrderResponse, error)
 	InsertOrderItems(orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error)
 	GetAllOrderItems() ([]*dto.OrderItemsResponse, error)
+	UpdateOrderItems(orderId int, orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error)
 	DeleteOrderByID(orderID int) (int64, error)
 }
 
@@ -24,24 +24,6 @@ func NewOrderService(repo order_repository.OrderRepository) OrderService {
 	return &orderService{
 		repo: repo,
 	}
-}
-
-func (o *orderService) InsertOrder(orderPayload *dto.NewOrderRequest) (*dto.NewOrderResponse, error) {
-	// ! Service untuk insert data order ke database
-	if err := orderPayload.Validate(); err != nil {
-		return nil, err
-	}
-
-	orderRequest := &entity.Order{
-		CustomerName: orderPayload.CustomerName,
-	}
-
-	newOrder, err := o.repo.InsertOrder(orderRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	return newOrder.NewOrderResponseDTO(), nil
 }
 
 func (o *orderService) InsertOrderItems(orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error) {
@@ -80,6 +62,34 @@ func (o *orderService) GetAllOrderItems() ([]*dto.OrderItemsResponse, error) {
 	}
 
 	return orderItems, nil
+}
+
+func (o *orderService) UpdateOrderItems(orderId int, orderPayload *dto.NewOrderItemsRequest) (*dto.NewOrderItemsRequest, error) {
+	// ! Service untuk update data order dan items ke database
+	if err := orderPayload.Validate(); err != nil {
+		return nil, err
+	}
+
+	orderRequest := &entity.Order{
+		CustomerName: orderPayload.CustomerName,
+	}
+
+	for _, item := range orderPayload.Items {
+		itemRequest := &entity.Item{
+			ItemCode:    item.ItemCode,
+			Description: item.Description,
+			Quantity:    item.Quantity,
+		}
+
+		orderRequest.Items = append(orderRequest.Items, *itemRequest)
+	}
+
+	err := o.repo.UpdateOrderItems(orderId, orderRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return orderPayload, nil
 }
 
 func (o *orderService) DeleteOrderByID(orderID int) (int64, error) {
