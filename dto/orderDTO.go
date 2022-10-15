@@ -32,14 +32,14 @@ type OrderItemsResponse struct {
 	ID           int                     `json:"order_id"`
 	CustomerName string                  `json:"customer_name"`
 	OrderedAt    time.Time               `json:"ordered_at"`
-	Items        []EmbeddedItemsResponse `json:"items"`
+	Items        []EmbeddedItemsResponse `json:"Items"`
 }
 
 type NewOrderResponse struct {
 	ID           int                    `json:"id"`
 	CustomerName string                 `json:"customer_name"`
 	Ordered_at   time.Time              `json:"ordered_at"`
-	Items        []EmbeddedItemsRequest `json:"items"`
+	Items        []EmbeddedItemsRequest `json:"Items"`
 }
 
 type OrderDeletedResponse struct {

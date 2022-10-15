@@ -20,11 +20,20 @@ const (
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, item_code, description, quantity, order_id;
 	`
-	retrieveOrderItemQuery = `
-		SELECT o.id, o.customer_name, o.ordered_at, i.id, i.item_code, i.description, i.quantity
+	// retrieveOrderItemQuery = `
+	// 	SELECT o.id, o.customer_name, o.ordered_at, i.id, i.item_code, i.description, i.quantity
+	// 	FROM orders as o
+	// 	LEFT JOIN items as i ON o.id = i.order_id
+	// 	ORDER BY o.id ASC;
+	// `
+	retrieveOrderQuery = `
+		SELECT o.id, o.customer_name, o.ordered_at
 		FROM orders as o
-		LEFT JOIN items as i ON o.id = i.order_id
-		ORDER BY o.id ASC;
+	`
+	retrieveItemsQuery = `
+		SELECT i.id, i.item_code, i.description, i.quantity, i.order_id
+		FROM items as i
+		WHERE i.order_id = $1
 	`
 	updateOrderQuery = `
 		UPDATE orders
@@ -88,10 +97,12 @@ func (o *orderPG) CreateOrder(orderPayload *entity.Order) error {
 func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 	var orderItems = []*dto.OrderItemsResponse{}
 
-	rows, err := o.db.Query(retrieveOrderItemQuery)
+	rows, err := o.db.Query(retrieveOrderQuery)
 	if err != nil {
 		return nil, err
 	}
+	// sebuahRows, err := o.db.Query(retrieveItemsQuery, 25)
+	fmt.Println("hasil query", rows)
 
 	for rows.Next() {
 		var orderItem order_repository.OrderItems
@@ -99,11 +110,26 @@ func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 			&orderItem.Order.ID,
 			&orderItem.Order.CustomerName,
 			&orderItem.Order.OrderedAt,
-			&orderItem.Items.ID,
-			&orderItem.Items.ItemCode,
-			&orderItem.Items.Description,
-			&orderItem.Items.Quantity,
 		)
+		if err != nil {
+			return nil, err
+		}
+
+		childRows, err := o.db.Query(retrieveItemsQuery, orderItem.Order.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		for childRows.Next() {
+			err = childRows.Scan(
+				&orderItem.Items.ID,
+				&orderItem.Items.ItemCode,
+				&orderItem.Items.Description,
+				&orderItem.Items.Quantity,
+				&orderItem.Items.OrderID,
+			)
+		}
+		defer childRows.Close()
 
 		if err != nil {
 			return nil, err
@@ -112,6 +138,7 @@ func (o *orderPG) GetOrderItems() ([]*dto.OrderItemsResponse, error) {
 		dto := orderItem.ToOrderItemsDTO()
 		orderItems = append(orderItems, &dto)
 	}
+	defer rows.Close()
 
 	return orderItems, nil
 }
